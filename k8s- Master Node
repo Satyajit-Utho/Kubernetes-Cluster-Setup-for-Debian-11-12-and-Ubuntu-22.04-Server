@@ -1,0 +1,62 @@
+#!/bin/bash
+# Master Node Kubernetes Stack for Debian
+
+set -e
+
+echo "[1/12] Updating system packages..."
+sudo apt-get update -y
+sudo apt-get upgrade -y
+
+echo "[2/12] Installing dependencies..."
+sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release software-properties-common conntrack
+
+echo "[3/12] Installing containerd..."
+sudo apt-get install -y containerd
+sudo mkdir -p /etc/containerd
+sudo containerd config default | sudo tee /etc/containerd/config.toml
+sudo sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
+sudo systemctl restart containerd
+sudo systemctl enable containerd
+sudo systemctl status containerd
+
+echo "[4/12] Adding Kubernetes APT repository..."
+sudo curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/k8s.gpg
+echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+echo "[5/12] Installing kubeadm, kubelet, kubectl..."
+sudo apt-get update -y
+sudo apt-get install -y kubelet kubeadm kubectl kubernetes-cni
+sudo apt-mark hold kubelet kubeadm kubectl
+
+echo "[6/12] Setting hostname resolution..."
+echo "127.0.0.1 masternode" | sudo tee -a /etc/hosts
+
+echo "[7/12] Resetting any previous Kubernetes setup..."
+sudo kubeadm reset -f
+sudo rm -rf /etc/cni/net.d /var/lib/cni/ /var/lib/kubelet/* /etc/kubernetes/
+
+echo "[8/12] Initializing Kubernetes master..."
+sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --token-ttl 0 > /root/kubeinit.log 2>&1
+
+if [ $? -eq 0 ]; then
+    echo "[✓] kubeadm init completed."
+
+    echo "[9/12] Setting up kubectl for root..."
+    mkdir -p $HOME/.kube
+    sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+    sudo chown $(id -u):$(id -g) $HOME/.kube/config
+    export KUBECONFIG=$HOME/.kube/config
+
+    echo "[10/12] Applying Flannel CNI..."
+    kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+
+    echo "[11/12] Generating join command..."
+    JOIN_COMMAND=$(kubeadm token create --print-join-command --ttl 0)
+    echo "$JOIN_COMMAND" > /root/joincluster.sh
+    chmod +x /root/joincluster.sh
+    echo "[✓] Join command generated at /root/joincluster.sh"
+else
+    echo "[✗] kubeadm init failed. Check /root/kubeinit.log"
+fi
+
+echo "[12/12] Master setup complete!"

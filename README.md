@@ -68,5 +68,5 @@ kubeadm token create --print-join-command
 <p align="center">
   <img src="https://img.shields.io/badge/Satyajit%20Barik-FF5733?style=for-the-badge&labelColor=000000&color=FF5733">
   <img src="https://img.shields.io/badge/DevOps%20Engineer-2E86C1?style=for-the-badge&labelColor=000000&color=2E86C1">
-  <img src="https://img.shields.io/badge/Utho%20Platform%20Pvt%20Ltd-28B463?style=for-the-badge&labelColor=000000&color=28B463">
+  <img src="https://img.shields.io/badge/Utho%20Platforms%20Private%20Limited-28B463?style=for-the-badge&labelColor=000000&color=28B463">
 </p>

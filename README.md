@@ -11,64 +11,58 @@ Run this script on your **Master Node**:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/<your-github-username>/<your-repo>/main/master-node.sh | bash
 After setup completes, your join command will be shown automatically.
-
+````
 You can also get the join command anytime by running:
-
-bash
-Copy
-Edit
+```bash
 kubeadm token create --print-join-command
+```
+
 2. Worker Node Setup
+3. 
 Run this script on each Worker Node:
 
-bash
-Copy
-Edit
+```bash
 curl -fsSL https://raw.githubusercontent.com/<your-github-username>/<your-repo>/main/worker-node.sh | bash
+```
+
 3. Verify Cluster Status
+   
 On the Master Node, check all nodes:
-
-bash
-Copy
-Edit
+```bash
 kubectl get nodes -o wide
+```
 Check all system pods:
-
-bash
-Copy
-Edit
+```bash
 kubectl get pods -n kube-system -o wide
+```
+
 4. Assign Worker Role Label
+   
 If your worker node is not automatically labeled, run:
-
-bash
-Copy
-Edit
+```bash
 kubectl label node <worker-node-name> node-role.kubernetes.io/worker=worker
+```
 Example:
-
-bash
-Copy
-Edit
+```
 kubectl label node workernode1 node-role.kubernetes.io/worker=worker
+```
 5. Troubleshooting
+6. 
 Node shows NotReady:
+
 Check CNI plugin:
-
-bash
-Copy
-Edit
+```bash
 kubectl get pods -n kube-flannel
+```
 Reinstall Flannel if needed:
-
-bash
-Copy
-Edit
+```bash
 kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
+```
 Join Command Expired:
 Generate a new one:
-
-bash
-Copy
-Edit
+```bash
 kubeadm token create --print-join-command
+
+`````
+
+Satyajit Barik
